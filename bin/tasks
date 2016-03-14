@@ -2,6 +2,95 @@
 $:.unshift(File.dirname(File.expand_path('../../lib/tasks.rb',__FILE__)))
 
 require 'tasks'
+require 'optparse'
 
-require 'pry'
-binding.pry
+options = {}
+
+OptionParser.new do |opts|
+  case ARGV[0]
+  when "add"
+    options[:command] = "add"
+
+    opts.on("-t", "--title TITLE", String, "Title of todo, best if brief") do |title|
+      options[:title] = title
+    end
+
+    opts.on("-d", "--description DESCRIPTION", String, "Longer description of todo") do |description|
+      options[:description] = description
+    end
+
+    opts.on(
+      "-p", "--priority PRIORITY", Integer, 
+      "Numeric priority to help sort tasks, default is zero..."
+    ) do |description|
+      options[:description] = description
+    end
+
+    opts.on( "-h", "--help", "Print help info") do |x|
+      options[:help] = true
+    end
+
+  when "rm"
+    options[:command] = "rm"
+    opts.on("-i", "--id INT", Integer, "Suppress output and run in daemon mode") do |id|
+      options[:id] = id
+    end
+  when "list"
+    options[:command] = "list"
+  else
+    options[:command] = "help"
+  end
+end.parse!
+
+case options[:command]
+when  "help"
+  puts <<HELP
+You  need more arguments for this to work...
+Options: 
+#{__FILE__} list
+#{__FILE__} add
+#{__FILE__} rm
+HELP
+when "list"
+when "add"
+  if options[:help]
+    puts <<ADDHELP
+Usage:
+#{__FILE__} -t TITLE -d DESCRIPTION -p PRIORITY
+#{__FILE__} --title TITLE --description DESCRIPTION --priority PRIORITY
+ADDHELP
+
+  else
+    t = Task.new
+    t.title = options[:title]
+    t.priority = options[:priority]
+    t.description = options[:description]
+    if t.save
+      puts "Task added! (^_^)"
+    else
+      puts "Task could not be saved... (>_<)"
+    end
+  end
+when "rm"
+  case options[:id]
+  when nil
+    puts "Usage:" 
+    puts "#{__FILE__} rm --id <ID>"
+    puts "#{__FILE__} rm -i <ID>"
+  else
+    if t = Task.get(options[:id])
+      t.complete!
+      puts [
+        "Nice job!",
+        "Fuck yea!",
+        "Git'r'done!",
+        "Fire in the hole!", 
+        "Burning down the house!",
+        "You're killin' it kid!"
+      ].shuffle.first
+    else
+      puts "Invalid ID, try #{__FILE__} list for all ids"
+    end
+  end
+
+end
