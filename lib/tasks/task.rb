@@ -10,6 +10,12 @@ class Task
 
   validates_presence_of :title
 
+  has n, :categorizations
+
+  def categories
+    categorizations.map(&:category).flatten.map(&:name)
+  end
+
   def complete!
     self.complete = true
     self.save
@@ -18,6 +24,7 @@ class Task
   def printable(status=false)
     out = "id(#{id}), "
     out += "status(#{ complete ? 'done' : 'open'}), " if status
+    out += "categories(#{categories.join(',')}), "
     out += "priority(#{priority}) #{title}"
     out
   end

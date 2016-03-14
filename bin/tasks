@@ -26,11 +26,19 @@ OptionParser.new do |opts|
     opts.on("-d", "--description DESCRIPTION", String, "Longer description of todo") do |description|
       options[:description] = description
     end 
+
     opts.on(
       "-p", "--priority PRIORITY", Integer, 
       "Numeric priority to help sort tasks, default is zero..."
     ) do |priority|
       options[:priority] = priority
+    end
+
+    opts.on(
+      "-c", "--categories CATEGORIES", String, 
+      "comma separated list of categories"
+    ) do |cat|
+      options[:categories] = cat.split(',')
     end
 
     opts.on( "-h", "--help", "Print help info") do |x|
@@ -100,6 +108,17 @@ ADDHELP
     t.priority = options[:priority] || 0
     t.description = options[:description]
     if t.save
+      if options[:categories]
+        options[:categories].each do |name|
+          c = Category.all(name: name).first
+          unless c
+            c = Category.new(name: name)
+            c.save
+          end
+          cc = Categorization.new(category: c, task: t)
+          cc.save
+        end
+      end
       puts "Task added! (^_^)"
     else
       puts "Task could not be saved... (>_<)"
