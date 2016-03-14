@@ -5,7 +5,7 @@ require 'dm-validations'
 $:.unshift(File.dirname(__FILE__))
 
 DataMapper::Property::String.length(255)
-DataMapper.setup(:default, "sqlite:tasks.db")
+DataMapper.setup(:default, "sqlite:#{ENV['HOME']}/.tasks.db")
 
 require 'tasks/task'
 

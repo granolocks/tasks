@@ -1,5 +1,13 @@
 #!/usr/bin/env ruby
-$:.unshift(File.dirname(File.expand_path('../../lib/tasks.rb',__FILE__)))
+
+# set path to ../../lib/ as $TASKS_CODE_DIR in env
+CODE_DIR = ENV["TASKS_CODE_DIR"]
+
+unless CODE_DIR
+  puts "Must set location of lib directory as $TASKS_CODE_DIR in environment"
+end
+
+$:.unshift(CODE_DIR)
 
 require 'tasks'
 require 'optparse'
@@ -17,13 +25,12 @@ OptionParser.new do |opts|
 
     opts.on("-d", "--description DESCRIPTION", String, "Longer description of todo") do |description|
       options[:description] = description
-    end
-
+    end 
     opts.on(
       "-p", "--priority PRIORITY", Integer, 
       "Numeric priority to help sort tasks, default is zero..."
-    ) do |description|
-      options[:description] = description
+    ) do |priority|
+      options[:priority] = priority
     end
 
     opts.on( "-h", "--help", "Print help info") do |x|
@@ -35,10 +42,18 @@ OptionParser.new do |opts|
     opts.on("-i", "--id INT", Integer, "Suppress output and run in daemon mode") do |id|
       options[:id] = id
     end
-  when "list"
-    options[:command] = "list"
-  else
+  when "help"
     options[:command] = "help"
+  when "-h"
+    options[:command] = "help"
+  else
+    options[:command] = "list"
+    opts.on( "-a", "--all", "List completed tasks as well..") do |x|
+      options[:all] = true
+    end
+    opts.on( "-f", "--full", "Print all attributes") do |x|
+      options[:full] = true
+    end
   end
 end.parse!
 
@@ -52,6 +67,25 @@ Options:
 #{__FILE__} rm
 HELP
 when "list"
+  if options[:all]
+    tasks = Task.all.sort_by{|t|t.priority.to_i}.reverse
+    status = true
+  else
+    tasks = Task.all(complete: false).sort_by{|t|t.priority}.reverse
+    status = false
+  end
+
+  if tasks.count > 0
+    tasks.each do |t|
+      if options[:full]
+        puts t.full_printable(status)
+      else
+        puts t.printable(status)
+      end
+    end
+  else
+    puts "Nothing to do, go take a nap! ...zzzzz... "
+  end
 when "add"
   if options[:help]
     puts <<ADDHELP
@@ -63,7 +97,7 @@ ADDHELP
   else
     t = Task.new
     t.title = options[:title]
-    t.priority = options[:priority]
+    t.priority = options[:priority] || 0
     t.description = options[:description]
     if t.save
       puts "Task added! (^_^)"
@@ -92,5 +126,4 @@ when "rm"
       puts "Invalid ID, try #{__FILE__} list for all ids"
     end
   end
-
 end
