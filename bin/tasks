@@ -38,11 +38,10 @@ OptionParser.new do |opts|
       "-c", "--categories CATEGORIES", String, 
       "comma separated list of categories"
     ) do |cat|
-      options[:categories] = cat.split(',')
+      options[:categories] = cat.split(',').map(&:strip)
     end
 
-    opts.on( "-h", "--help", "Print help info") do |x|
-      options[:help] = true
+    opts.on( "-h", "--help", "Print help info") do |x| options[:help] = true
     end
 
   when "rm"
@@ -59,8 +58,9 @@ OptionParser.new do |opts|
     opts.on( "-a", "--all", "List completed tasks as well..") do |x|
       options[:all] = true
     end
-    opts.on( "-f", "--full", "Print all attributes") do |x|
-      options[:full] = true
+
+    opts.on("-c", "--category CATEGORY", String, "Category to filter with") do |cat|
+      options[:category] = cat
     end
   end
 end.parse!
@@ -68,32 +68,14 @@ end.parse!
 case options[:command]
 when  "help"
   puts <<HELP
-You  need more arguments for this to work...
+You  need more arguments for this to work...  
 Options: 
 #{__FILE__} list
 #{__FILE__} add
 #{__FILE__} rm
 HELP
 when "list"
-  if options[:all]
-    tasks = Task.all.sort_by{|t|t.priority.to_i}.reverse
-    status = true
-  else
-    tasks = Task.all(complete: false).sort_by{|t|t.priority}.reverse
-    status = false
-  end
-
-  if tasks.count > 0
-    tasks.each do |t|
-      if options[:full]
-        puts t.full_printable(status)
-      else
-        puts t.printable(status)
-      end
-    end
-  else
-    puts "Nothing to do, go take a nap! ...zzzzz... "
-  end
+  Task.print_table(options)
 when "add"
   if options[:help]
     puts <<ADDHELP
