@@ -1,4 +1,3 @@
-
 require 'data_mapper'
 require 'dm-timestamps'
 require 'dm-validations'
@@ -13,6 +12,4 @@ require 'tasks/task'
 DataMapper.auto_upgrade!
 DataMapper.finalize
 
-require 'pry'
-binding.pry
 

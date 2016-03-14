@@ -1,0 +1,7 @@
+#!/usr/bin/env ruby
+$:.unshift(File.dirname(File.expand_path('../../lib/tasks.rb',__FILE__)))
+
+require 'tasks'
+
+require 'pry'
+binding.pry
