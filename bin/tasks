@@ -46,8 +46,12 @@ OptionParser.new do |opts|
 
   when "rm"
     options[:command] = "rm"
-    opts.on("-i", "--id INT", Integer, "Suppress output and run in daemon mode") do |id|
-      options[:id] = id
+    if ARGV[1]
+      options[:id] = ARGV[1].to_i
+    else
+      opts.on("-i", "--id INT", Integer, "Suppress output and run in daemon mode") do |id|
+        options[:id] = id
+      end
     end
   when "help"
     options[:command] = "help"
